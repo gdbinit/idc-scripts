@@ -134,21 +134,5 @@ static main()
 #endif
         }        
     }
-    Message("All done, hopefully you have sysent table commented with function names!\n");
+    Message("All done, hopefully you have sysent table commented with function names and structure defs applied!\n");
 }
-
-/*
-AddStrucMember 
-AddStrucEx
-GetFirstMember 
-GetFirstStrucIdx 
-GetLastMember 
-GetLastStrucIdx 
-MakeStructEx
-SetMemberName
-SetMemberType 
-SetStrucComment 
-SetStrucName 
-FFFFFF8000861690
-FFFFFF8000864F70
-*/
