@@ -21,11 +21,75 @@
 // comment to remove debug log messages
 #define DEBUG
 
+/*
+   find sysent table location using _unix_syscall()
+   first we find the __got pointer and then read where sysent is located at.
+   this is the disassembly of interesting unix_syscall part.
+__text:FFFFFF800063AF18 48 03 1D D9 51 1C 00                    add     rbx, cs:off_FFFFFF80008000F8
+__text:FFFFFF800063AF1F 49 8D 7C 24 04                          lea     rdi, [r12+4]
+__text:FFFFFF800063AF24 48 3B 1D CD 51 1C 00                    cmp     rbx, cs:off_FFFFFF80008000F8 <- __got ptr to sysent table
+__text:FFFFFF800063AF2B 75 1C                                   jnz     short loc_FFFFFF800063AF49
+__text:FFFFFF800063AF2D E8 DE A9 FF FF                          call    _fuword
+ */
+static find_sysent()
+{
+    auto location, addr, xref, source, i, cmp_addr, got_addr, sysent_addr;
+    // find references to fuword function
+    location = LocByName("_fuword");
+    if (location == BADADDR)
+    {
+        Message("Could not find fuword() function!\n");
+        return 0;
+    }
+    else
+    {
+        for (addr = RfirstB(location); addr != BADADDR; addr = RnextB(location, addr))
+        {
+            xref = XrefType();
+            if (xref == fl_CN || xref == fl_CF)
+            {
+                source = GetFunctionName(addr);
+#ifdef DEBUG
+                Message("fuword is called from 0x%lx in %s\n", addr, source);
+#endif                
+                if (source == "_unix_syscall")
+                {
+                    cmp_addr = addr;
+                    i = 5; // number of instructions to search for
+                    while (i > 0)
+                    {
+                        cmp_addr = FindCode(cmp_addr, SEARCH_UP | SEARCH_NEXT);
+                        if (GetMnem(cmp_addr) == "cmp")
+                        {
+#ifdef DEBUG
+                            Message("Found cmp at %lx\n", cmp_addr);
+#endif
+                            got_addr = GetOperandValue(cmp_addr, 1);
+                            if (got_addr != -1)
+                            {
+                                sysent_addr = Qword(got_addr);
+#ifdef DEBUG
+                                Message("Got address %lx\n", got_addr);
+                                Message("Sysent table starts at %lx\n", sysent_addr);
+#endif
+                                return sysent_addr;
+                            }
+                        }
+                        i--;
+                    }
+                }
+            }
+        }
+    }
+    return 0;
+}
+
 static main()
 {
     auto version, sysentsize, str_start, str_end, start, end, size, nrentries;
     auto i, address, function_name;
     auto struct_id, entry_address;
+    
     version = AskYN(1, "Is target version less than 10.9?");
     if (version == -1)
     {
