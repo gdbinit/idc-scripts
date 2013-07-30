@@ -147,7 +147,7 @@ static main()
     // pre mavericks
     if (version == 1)
     {   
-        struct_id = AddStrucEx(-1, "sysent", 0);
+        struct_id = AddStrucEx(-1, "sysent_t", 0);
         if (struct_id == -1)
         {
             Message("Error! Can't create structure!\n");
@@ -184,7 +184,7 @@ static main()
             entry_address = start + i * sysentsize;
             address = Qword(entry_address + 8);
             function_name = GetFunctionName(address);
-            MakeStructEx(entry_address, -1, "sysent");
+            MakeStructEx(entry_address, -1, "sysent_t");
             MakeComm(entry_address, function_name);
 #ifdef DEBUG
             Message("Function at address %lx is %s\n", address, function_name);
@@ -194,7 +194,7 @@ static main()
     // mavericks
     else if (version == 0)
     {
-        struct_id = AddStrucEx(-1, "sysent", 0);
+        struct_id = AddStrucEx(-1, "sysent_t", 0);
         if (struct_id == -1)
         {
             Message("Error! Can't create structure!\n");
@@ -224,7 +224,7 @@ static main()
             entry_address = start + i * sysentsize;
             address = Qword(entry_address);
             function_name = GetFunctionName(address);
-            MakeStructEx(entry_address, -1, "sysent");
+            MakeStructEx(entry_address, -1, "sysent_t");
             MakeComm(entry_address, function_name);
 #ifdef DEBUG
             Message("Function at address %lx is %s\n", address, function_name);
